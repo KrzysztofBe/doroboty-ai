@@ -1,4 +1,5 @@
 import { HashRouter, Routes, Route, Navigate } from "react-router";
+import { Analytics } from "@vercel/analytics/react";
 import { PrototypeProvider } from "./store";
 import { Shell, NotFound } from "./shell";
 import HomePage from "./home";
@@ -153,6 +154,7 @@ export function App() {
       <HashRouter>
         <AppRoutes />
       </HashRouter>
+      <Analytics />
     </PrototypeProvider>
   );
 }
