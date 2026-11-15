@@ -18,6 +18,7 @@ export function ApplicationRecord({
   companyName,
   audience,
   history,
+  evidence,
   statusRef,
   children,
   footer,
@@ -29,6 +30,7 @@ export function ApplicationRecord({
   companyName: string;
   audience: "candidate" | "employer";
   history: RecordEvent[];
+  evidence?: ReactNode;
   statusRef?: Ref<HTMLSpanElement>;
   children?: ReactNode;
   footer?: ReactNode;
@@ -93,6 +95,16 @@ export function ApplicationRecord({
                 </>
               ),
             },
+            ...(evidence
+              ? [
+                  {
+                    value: "evidence",
+                    label: candidate ? "Pytania i zadania" : "Karta dowodów",
+                    content: evidence,
+                    keepMounted: true,
+                  },
+                ]
+              : []),
           ]}
           footer={footer}
         >

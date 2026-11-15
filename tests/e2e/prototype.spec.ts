@@ -6,6 +6,7 @@ import { readFile } from "node:fs/promises";
 async function choose(page: Page, name: string) {
   await page.goto("/#/auth/sign-in");
   await page.getByRole("button", { name: `Wejdź jako ${name}`, exact: true }).click();
+  await expect(page).toHaveURL(/#\/app(?:\/|$)/);
 }
 async function application(page: Page) {
   await choose(page, "Anna Kowalska");
@@ -147,6 +148,7 @@ test("published job → saved offer/draft → submitted application → employer
   await page.getByRole("button", { name: "W przeglądzie", exact: true }).click();
   for (const label of ["Zaproszenie na rozmowę", "Pierwsza rozmowa odbyta", "Kolejny etap"])
     await page.getByRole("button", { name: label, exact: true }).click();
+  await expect(page.getByRole("button", { name: "Zatrudnienie", exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("button", { name: "Zatrudnienie", exact: true })).toBeVisible();
   await choose(page, "Anna Kowalska");
@@ -175,6 +177,7 @@ test("candidate withdrawal is confirmed and terminal", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Wycofaj aplikację", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Wycofaj aplikację", exact: true }).click();
   await page.getByRole("button", { name: "Potwierdź wycofanie", exact: true }).click();
+  await expect(page.locator(".record-stage")).toHaveText("Wycofana");
   await page.reload();
   await expect(page.locator(".record-stage")).toHaveText("Wycofana");
 });
@@ -219,12 +222,9 @@ test("invalid import preserves state, valid import replaces state, reset asks fo
   await expect(page.getByText("Zaimportowana Anna", { exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: "Resetuj scenariusz", exact: true }).click();
   await page.getByRole("button", { name: "Resetuj", exact: true }).click();
-  expect(
-    await page.evaluate(
-      (key) => JSON.parse(localStorage.getItem(key)!).activePersonId,
-      STORAGE_KEY,
-    ),
-  ).toBe(null);
+  await expect
+    .poll(() => page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), STORAGE_KEY))
+    .toEqual(initialState());
 });
 test("unreadable save stays untouched while the user works in memory", async ({ page }) => {
   await page.goto("/");
@@ -365,6 +365,7 @@ for (const width of [1440, 375]) {
       buffer: Buffer.from(JSON.stringify(legacy)),
     });
     await page.getByRole("button", { name: "Importuj", exact: true }).click();
+    await expect(page.getByText("Dane zostały zaimportowane.")).toBeVisible();
     await page.goto(`/#/aplikuj/${job.slug}`);
     await page.reload();
     const form = page.locator("main form");
@@ -460,6 +461,7 @@ test("legacy dark preference keeps scenario data and renders the light interface
   await expect(page.locator("html")).not.toHaveClass(/dark/);
   await expect(page.locator("body")).toHaveCSS("background-color", "rgb(244, 244, 240)");
   await page.getByRole("button", { name: "Zapisz profil", exact: true }).click();
+  await expect(page.getByText("Profil został zapisany.")).toBeVisible();
   expect(
     await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!).theme, STORAGE_KEY),
   ).toBeUndefined();
@@ -830,6 +832,7 @@ for (const width of [1280, 390]) {
       /^\.?\/cv\/anna-kowalska-cv-v1\.pdf$/,
     );
     await form.getByRole("button", { name: "Zapisz szkic", exact: true }).click();
+    await expect(form.getByText("Szkic został zapisany.")).toBeVisible();
     await page.reload();
     await expect(answer).toHaveValue(text);
     await expect(form.getByRole("checkbox")).not.toBeChecked();

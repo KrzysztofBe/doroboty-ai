@@ -40,7 +40,8 @@ export function PersonPicker() {
     <section className="prototype-section max-w-4xl">
       <h1>Wybierz osobę</h1>
       <p className="mt-4 mb-8 text-muted-foreground">
-        Wybierz profil, z którego chcesz korzystać w prototypie. Hasło nie jest potrzebne.
+        Wybierz fikcyjny profil. Role służą do ćwiczenia i nie ograniczają dostępu do zapisu w tej
+        przeglądarce.
       </p>
       <div className="grid gap-5 sm:grid-cols-2">
         {people.map((person) => (
@@ -49,8 +50,8 @@ export function PersonPicker() {
             <p className="my-4 text-muted-foreground">{person.headline}</p>
             <Button
               variant="outline"
-              onClick={() => {
-                run({ type: "select_person", id: person.id });
+              onClick={async () => {
+                await run({ type: "select_person", id: person.id });
                 navigate(
                   person.role === "candidate"
                     ? (safeNext ?? "/app")
@@ -143,11 +144,11 @@ export function ProfilePage({ preview = false }: { preview?: boolean }) {
   const { state, run } = usePrototype();
   const person = currentPerson(state)!;
   const [message, setMessage] = useState("");
-  function save(e: FormEvent<HTMLFormElement>) {
+  async function save(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     if (
-      run({
+      await run({
         type: "profile",
         value: {
           name: String(data.get("name")),
@@ -181,6 +182,9 @@ export function ProfilePage({ preview = false }: { preview?: boolean }) {
         </div>
       ) : (
         <form onSubmit={save} className="prototype-panel prototype-form">
+          <p className="record-caption">
+            Używaj fikcyjnych danych, bez prawdziwych danych osobowych.
+          </p>
           <Field label="Imię i nazwisko">
             <Input name="name" required maxLength={200} defaultValue={person.name} />
           </Field>
@@ -269,7 +273,7 @@ export function ApplyPage() {
         </Link>
       </section>
     );
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
     if (submittedOnce.current) return;
     setAttempted(true);
@@ -281,7 +285,7 @@ export function ApplyPage() {
       document.getElementById("application-consent")?.focus();
       return;
     }
-    if (run({ type: "submit", jobId: job!.id, notes, generated, answer, consent })) {
+    if (await run({ type: "submit", jobId: job!.id, notes, generated, answer, consent })) {
       submittedOnce.current = true;
       setSubmitted(true);
       if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -309,7 +313,8 @@ export function ApplyPage() {
           <header className="application-form-intro">
             <h2 id="application-form-title">Twoja aplikacja</h2>
             <p>
-              Aplikujesz jako <strong>{person.name}</strong>.
+              Aplikujesz jako <strong>{person.name}</strong>. Używaj fikcyjnych danych, bez
+              prawdziwych CV i danych osobowych.
             </p>
           </header>
           <section className="application-form-section" aria-labelledby="application-cv-title">
@@ -386,8 +391,8 @@ export function ApplyPage() {
                 type="button"
                 disabled={submitted}
                 variant="outline"
-                onClick={() => {
-                  if (run({ type: "draft", jobId: job.id, notes, generated, answer }))
+                onClick={async () => {
+                  if (await run({ type: "draft", jobId: job.id, notes, generated, answer }))
                     setMessage("Szkic został zapisany.");
                 }}
               >

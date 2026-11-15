@@ -37,11 +37,11 @@ export function SettingsPage() {
       setError("Nie udało się odczytać pliku.");
     }
   }
-  function confirm() {
+  async function confirm() {
     if (pending === "reset") {
-      reset();
+      await reset();
       setMessage("Przywrócono scenariusz początkowy.");
-    } else if (importState(raw)) {
+    } else if (await importState(raw)) {
       setMessage("Dane zostały zaimportowane.");
     }
     setPending(null);
@@ -52,8 +52,9 @@ export function SettingsPage() {
       <section className="prototype-panel prototype-form">
         <h2>Dane scenariusza</h2>
         <p>
-          Zmiany są zapisane tylko w tej przeglądarce. Wysłanie linku innej osobie nie przenosi
-          Twoich danych. Eksport pozwala przekazać scenariusz lub zachować kopię przed resetem.
+          Importuj wyłącznie pliki z fikcyjnymi danymi. Zmiany są zapisane tylko w tej przeglądarce.
+          Wysłanie linku innej osobie nie przenosi Twoich danych. Eksport pozwala przekazać
+          scenariusz lub zachować kopię przed resetem.
         </p>
         <div className="flex flex-wrap gap-3">
           <Button

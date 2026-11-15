@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Tabs } from "@base-ui/react/tabs";
 import { Button } from "@/components/ui/button";
 
-type RecordSection = { value: string; label: string; content: ReactNode };
+type RecordSection = { value: string; label: string; content: ReactNode; keepMounted?: boolean };
 
 export function RecordSheet({
   label,
@@ -35,7 +35,12 @@ export function RecordSheet({
         </Tabs.List>
         {attachment && <div className="record-attachment">{attachment}</div>}
         {sections.map((section) => (
-          <Tabs.Panel key={section.value} value={section.value} className="record-reading">
+          <Tabs.Panel
+            key={section.value}
+            value={section.value}
+            keepMounted={section.keepMounted}
+            className="record-reading"
+          >
             {section.content}
           </Tabs.Panel>
         ))}

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ApplicationRecord } from "./application-record";
 import { nextStages, stageLabels, type Application } from "./model";
+import { EvidenceFollowUp } from "./recruiter-evidence-card";
 import { usePrototype } from "./store";
 
 export function RecruitingApplication({ application }: { application: Application }) {
@@ -28,6 +29,11 @@ export function RecruitingApplication({ application }: { application: Applicatio
         companyName={company?.name ?? ""}
         audience="employer"
         history={application.events}
+        evidence={
+          application.id === "application-example" ? (
+            <EvidenceFollowUp employer closed={!availableStages.length} />
+          ) : undefined
+        }
         statusRef={statusRef}
         footer={
           availableStages.length > 0 ? (
@@ -38,8 +44,10 @@ export function RecruitingApplication({ application }: { application: Applicatio
                   <Button
                     key={stage}
                     variant={stage === "rejected" ? "outline" : "default"}
-                    onClick={() => {
-                      if (run({ type: "stage", applicationId: application.id, stage, note })) {
+                    onClick={async () => {
+                      if (
+                        await run({ type: "stage", applicationId: application.id, stage, note })
+                      ) {
                         setNote("");
                         setAnnouncement(`Zapisano etap: ${stageLabels[stage]}.`);
                         pendingFocus.current = true;
@@ -64,7 +72,7 @@ export function RecruitingApplication({ application }: { application: Applicatio
               <label htmlFor="recruiting-note">Notatka rekrutacyjna</label>
             </h3>
             <p className="record-caption" id="recruiting-note-hint">
-              Widoczna tylko pracodawcy w tym scenariuszu.
+              Widoczna tylko pracodawcy w tym scenariuszu. Używaj fikcyjnych danych.
             </p>
             <Textarea
               id="recruiting-note"

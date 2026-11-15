@@ -8,6 +8,7 @@
 }
 .record-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   border-bottom: 1px solid #d8d5d1;
   margin-bottom: 22px;
@@ -336,4 +337,48 @@
   border: 1px solid var(--gui-edge);
   border-radius: 10px;
   background: var(--gui-canvas);
+}
+
+.evidence-gap {
+  border-inline-start: 3px solid var(--gui-text);
+  background: var(--gui-canvas);
+  padding: 14px 16px;
+}
+
+.evidence-gap h4,
+.evidence-sources dt {
+  margin-bottom: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.evidence-sources {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 12px 20px;
+  margin: 0;
+}
+
+.evidence-sources > div {
+  border-block-start: 1px solid var(--gui-edge);
+  padding-block-start: 10px;
+}
+
+.evidence-sources dd {
+  margin: 0;
+  color: var(--gui-text-muted);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.evidence-assistant {
+  border: 1px solid var(--gui-edge);
+  border-radius: 18px;
+  padding: clamp(12px, 3vw, 20px);
+}
+
+.record-reading .evidence-assistant .record-caption {
+  font-size: 13px;
+  line-height: 1.5;
 }
