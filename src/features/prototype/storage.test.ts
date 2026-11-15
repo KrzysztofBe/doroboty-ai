@@ -1,3 +1,4 @@
+import { legacyEvidenceKey } from "./evidence-follow-up";
 import { describe, expect, it } from "vitest";
 import { initialState } from "./model";
 import {
@@ -44,6 +45,32 @@ describe("browser persistence and recovery", () => {
         setItem() {},
       }).blocked,
     ).toBe(true);
+  });
+  it("recovers legacy written evidence without reviving it after a reset", () => {
+    const storage = memory(JSON.stringify({ ...initialState(), evidence: undefined }));
+    storage.setItem(
+      legacyEvidenceKey,
+      JSON.stringify({
+        measurement: { status: "sent", prompt: "Task", reply: { text: "Text", video: true } },
+        ownership: { status: "sent", prompt: "Question", reply: { text: "", video: true } },
+        discovery: { status: "invalid" },
+      }),
+    );
+    expect(readState(storage).state.evidence).toEqual({
+      measurement: { status: "sent", prompt: "Task", reply: { text: "Text" } },
+      ownership: { status: "sent", prompt: "Question" },
+    });
+    saveState(storage, initialState());
+    expect(readState(storage).state.evidence).toEqual({});
+  });
+  it("rejects a write when the tab's stored snapshot is stale", () => {
+    const storage = memory();
+    const first = readState(storage);
+    const second = readState(storage);
+    const next = { ...first.state, activePersonId: "candidate-marek" };
+    saveState(storage, next, first.persisted);
+    expect(() => saveState(storage, second.state, second.persisted)).toThrow("innej karcie");
+    expect(readState(storage).state).toEqual(next);
   });
   it("reports quota/write failure without altering the original", () => {
     const old = "old";

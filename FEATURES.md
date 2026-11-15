@@ -88,3 +88,22 @@ Stable IDs are retained, including explicit removed entries. The legacy duplicat
 ## Current implementation limits
 
 No real login, email, binary upload, production CVs, provider AI, confidential roles, backend, collaboration across devices, cloud analytics or live experiment measurement. A static URL shares code, not local state; exported JSON contains the entire scenario. Human testing, publishing, CI results and course approval must be verified separately.
+
+### Experimental recruiter evidence card
+
+The BrightLabs example has three evidence gaps with separate AI fixtures.
+The employer edits, accepts, rejects and sends each prompt independently.
+Marek replies to sent questions and tasks in writing using synthetic data.
+The employer can read and rate the usefulness of each reply. Previous
+written replies remain readable; previously submitted media-only replies
+can be answered again in writing. The feature does not access legacy media.
+Source: `src/features/prototype/evidence-follow-up.ts`,
+`src/features/prototype/recruiter-evidence-card.tsx`. Browser scenario:
+`tests/e2e/evidence-follow-up.spec.ts`.
+This experiment shares data between example roles in the same browser. The scenario export, import and reset now include decisions, replies and ratings for the card. Compatible text from older browser saves is loaded when the scenario has no evidence field.
+
+The public landing page explains the one-session demo and browser-local storage. Scenario editing and import screens remind visitors to use fictional data.
+
+Before writing browser storage, the app checks whether the persisted scenario changed since this tab last read or wrote it. If it has, the tab keeps its edits in memory and offers export rather than replacing the newer save.
+
+Browser Web Locks serialize scenario writes between tabs. On browsers without Web Locks, edits stay available for export from memory. The persona picker explains simulated role boundaries, and settings describe the scope of reset.

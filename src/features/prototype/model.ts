@@ -1,3 +1,4 @@
+import { evidenceStoreSchema } from "./evidence-follow-up";
 import { z } from "zod";
 import marketplace from "./data/marketplace.json" with { type: "json" };
 import people from "./data/people.json" with { type: "json" };
@@ -133,6 +134,7 @@ const draftSchema = z.object({
 export const stateSchema = z
   .object({
     version: z.literal(1),
+    evidence: evidenceStoreSchema.optional(),
     activePersonId: id.nullable(),
     companies: z.array(companySchema).min(1).max(200),
     jobs: z.array(jobSchema).min(1).max(1000),
@@ -218,6 +220,7 @@ export type Action =
 export function initialState(): State {
   const state = stateSchema.parse({
     version: 1,
+    evidence: {},
     activePersonId: null,
     ...marketplace,
     people,

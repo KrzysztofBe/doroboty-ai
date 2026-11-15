@@ -280,6 +280,13 @@ export function Shell() {
             </div>
           </header>
           <main id="main" ref={main} tabIndex={-1} className="outline-none">
+            {pathname === "/" && (
+              <p className="mx-auto max-w-[1360px] px-5 py-3 text-sm lg:px-8">
+                Demo na jedną sesję. Używaj fikcyjnych danych, bez prawdziwych CV i danych
+                osobowych. Zapis może zostać w tej przeglądarce po zamknięciu strony. Jeśli go
+                utracisz, zaczniesz od początku.
+              </p>
+            )}
             {content}
           </main>
           <footer className="bg-muted/40 text-foreground shadow-[var(--gui-divider-top-shadow)]">

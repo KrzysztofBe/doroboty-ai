@@ -1,6 +1,7 @@
+import type { EvidenceGap, EvidenceItem } from "./evidence-follow-up";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { initialState, transition, type Action, type State } from "./model";
-import { parseState, readState, saveState, type StoragePort } from "./storage";
+import { parseState, readState, saveState, STORAGE_KEY, type StoragePort } from "./storage";
 function browserStorage(): StoragePort | null {
   try {
     return window.localStorage;
@@ -15,22 +16,37 @@ function useStore() {
   const [error, setError] = useState("");
   const [blocked, setBlocked] = useState(loaded.blocked);
   const latest = useRef(state);
-  function commit(next: State, replace = false) {
+  const persisted = useRef(loaded.persisted);
+  const recoveryBlocked = useRef(loaded.blocked);
+  async function commit(next: State, replace = false, showImmediately = false) {
     latest.current = next;
-    setState(next);
+    if (showImmediately) setState(next);
     setError("");
-    if (blocked && !replace) return;
+    await persist(next, replace);
+    if (latest.current === next) setState(next);
+  }
+  async function persist(next: State, replace: boolean) {
     try {
-      saveState(browserStorage(), next);
-      setIssue("");
-      if (replace) setBlocked(false);
+      if (!navigator.locks) {
+        setIssue("Bezpieczny zapis jest niedostępny. Wyeksportuj zmiany przed zamknięciem strony.");
+        return;
+      }
+      await navigator.locks.request(STORAGE_KEY, () => {
+        if (recoveryBlocked.current && !replace) return;
+        persisted.current = saveState(browserStorage(), next, persisted.current);
+        setIssue("");
+        if (replace) {
+          recoveryBlocked.current = false;
+          setBlocked(false);
+        }
+      });
     } catch (e) {
       setIssue((e as Error).message);
     }
   }
-  function run(action: Action) {
+  async function run(action: Action) {
     try {
-      commit(transition(latest.current, action));
+      await commit(transition(latest.current, action));
       return true;
     } catch (e) {
       setError(
@@ -41,10 +57,10 @@ function useStore() {
       return false;
     }
   }
-  function importState(raw: string) {
+  async function importState(raw: string) {
     try {
       const next = parseState(raw);
-      commit(next, true);
+      await commit({ ...next, evidence: next.evidence ?? {} }, true);
       return true;
     } catch (e) {
       setError((e as Error).message);
@@ -61,6 +77,13 @@ function useStore() {
     blocked,
     original: loaded.original,
     run,
+    updateEvidence(id: EvidenceGap["id"], item: EvidenceItem) {
+      void commit(
+        { ...latest.current, evidence: { ...latest.current.evidence, [id]: item } },
+        false,
+        true,
+      );
+    },
     importState,
     clearError: () => setError(""),
     reset: () => commit(initialState(), true),

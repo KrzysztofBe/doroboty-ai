@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ApplicationRecord } from "./application-record";
 import type { Application } from "./model";
+import { EvidenceFollowUp } from "./recruiter-evidence-card";
 import { usePrototype } from "./store";
 
 export function CandidateApplication({ application }: { application: Application }) {
@@ -27,6 +28,11 @@ export function CandidateApplication({ application }: { application: Application
         application={application}
         companyName={company?.name ?? ""}
         audience="candidate"
+        evidence={
+          application.id === "application-example" ? (
+            <EvidenceFollowUp employer={false} closed={terminal} />
+          ) : undefined
+        }
         history={application.events.map(({ stage, at }) => ({ stage, at }))}
         statusRef={statusRef}
         footer={
@@ -43,8 +49,8 @@ export function CandidateApplication({ application }: { application: Application
                 <Button
                   ref={confirmRef}
                   variant="destructive"
-                  onClick={() => {
-                    if (run({ type: "withdraw", applicationId: application.id })) {
+                  onClick={async () => {
+                    if (await run({ type: "withdraw", applicationId: application.id })) {
                       focusAfter.current = "status";
                       setConfirming(false);
                       setAnnouncement("Aplikacja została wycofana.");

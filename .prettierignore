@@ -7,3 +7,8 @@ artifacts
 
 # Preserve the versioned reference byte-for-byte; checked by its own scripts.
 docs/design-system/agent-kit/
+
+# Generated offline audit; regenerate with the readiness renderer.
+/docs/production-readiness.html
+
+/.node-runtime/
