@@ -1,6 +1,7 @@
 import type { EvidenceGap, EvidenceItem } from "./evidence-follow-up";
+import { usePostHog } from "@posthog/react";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { initialState, transition, type Action, type State } from "./model";
+import { currentPerson, initialState, transition, type Action, type State } from "./model";
 import { parseState, readState, saveState, STORAGE_KEY, type StoragePort } from "./storage";
 function browserStorage(): StoragePort | null {
   try {
@@ -93,6 +94,28 @@ type Store = ReturnType<typeof useStore>;
 const Context = createContext<Store | null>(null);
 export function PrototypeProvider({ children }: { children: ReactNode }) {
   const store = useStore();
+  const posthog = usePostHog();
+  const previousPersonId = useRef<string | null>(null);
+  const hasSyncedIdentity = useRef(false);
+  const person = currentPerson(store.state);
+
+  useEffect(() => {
+    if (
+      !import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN ||
+      (hasSyncedIdentity.current && previousPersonId.current === person?.id)
+    )
+      return;
+
+    if (previousPersonId.current && previousPersonId.current !== person?.id) posthog.reset();
+
+    if (person) {
+      posthog.identify(person.id, { name: person.name, role: person.role });
+    }
+
+    previousPersonId.current = person?.id ?? null;
+    hasSyncedIdentity.current = true;
+  }, [person, posthog]);
+
   return <Context.Provider value={store}>{children}</Context.Provider>;
 }
 export function usePrototype() {
